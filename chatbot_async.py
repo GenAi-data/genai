@@ -15,6 +15,18 @@ logger = logging.getLogger(__name__)
 st.set_page_config(page_title="🧠 GenAI ChatBot", layout="wide")
 st.title("💬 DeepSeek 1.3B - Local LLM ChatBot (Async GGUF)")
 
+st.info("""
+💡 **How to Ask Good Questions:**
+Try prompts that are clear and specific. Examples:
+- ✅ Write a Python function to validate email addresses.
+- ✅ Convert this SQL to PySpark: SELECT COUNT(*) FROM users.
+- ✅ What is IAM in AWS, and how does it help secure data lakes?
+- ✅ Suggest 3 tasks for testing data quality in a new ETL project.
+
+Don’t worry about being perfect — just be curious!
+""")
+
+
 # Thread-safe globals
 executor = ThreadPoolExecutor(max_workers=1)
 llm = None
