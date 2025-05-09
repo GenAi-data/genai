@@ -1,0 +1,14 @@
+# Ignore model file and local folders
+modelslist/**/*.gguf
+chat_cache/
+temp/
+vectordb/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+env/
+venv/
+.vscode/
+.idea/

@@ -1,0 +1,9 @@
+streamlit
+llama-cpp-python
+pandas
+torch
+transformers
+sentence-transformers
+chromadb
+plotly
+scikit-learn
