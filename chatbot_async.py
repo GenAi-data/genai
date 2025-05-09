@@ -55,7 +55,7 @@ atexit.register(cleanup)
 
 # Ensure messages are in session state
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "system", "content": "You are a helpful AI assistant."}]
+    st.session_state.messages = [{"role": "system", "content": "You are a highly knowledgeable, friendly AI assistant. Respond clearly, use examples where helpful, format code properly, and always explain your reasoning in simple terms."}]
 
 # Load model once
 if "model_loaded" not in st.session_state:
