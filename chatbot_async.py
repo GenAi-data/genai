@@ -20,28 +20,43 @@ if not model_path.exists():
 
 # Load model once in session
 if "llm_model" not in st.session_state:
-    st.session_state.llm_model = Llama(
-        model_path=str(model_path),
-        n_ctx=1024,
-        n_threads=6,
-        temperature=0.7,
-        top_p=0.95,
-        repeat_penalty=1.1
-    )
+    with st.spinner("🔄 Loading DeepSeek model..."):
+        try:
+            st.session_state.llm_model = Llama(
+                model_path=str(model_path),
+                n_ctx=1024,
+                n_threads=6,
+                temperature=0.7,
+                top_p=0.95,
+                repeat_penalty=1.1
+            )
+            st.success("✅ Model loaded successfully!")
+        except Exception as e:
+            st.error(f"❌ Failed to load model: {e}")
+            st.stop()
 
 # Initialize messages
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Async generation function using ThreadPoolExecutor
+# Async generation function
 executor = ThreadPoolExecutor(max_workers=1)
 
 async def generate_async_response(prompt_messages):
+    if "llm_model" not in st.session_state:
+        return "⚠️ Model not initialized. Please refresh the app."
+
     loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(executor, lambda: st.session_state.llm_model.create_chat_completion(
-        messages=prompt_messages,
-        max_tokens=512
-    )["choices"][0]["message"]["content"])
+    try:
+        return await loop.run_in_executor(
+            executor,
+            lambda: st.session_state.llm_model.create_chat_completion(
+                messages=prompt_messages,
+                max_tokens=512
+            )["choices"][0]["message"]["content"]
+        )
+    except Exception as e:
+        return f"⚠️ Generation error: {str(e)}"
 
 # Chat History UI
 for msg in st.session_state.messages:
@@ -54,7 +69,6 @@ if prompt := st.chat_input("Ask me anything..."):
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Generate response
     with st.spinner("Thinking..."):
         prompt_messages = [{"role": "system", "content": "You are a helpful AI assistant."}] + st.session_state.messages[-5:]
         response = asyncio.run(generate_async_response(prompt_messages))
