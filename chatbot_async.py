@@ -11,20 +11,51 @@ import atexit
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+model_path = Path(os.path.expanduser("~")) / "code" / "modelslist" / "deepseek-1_3b-gguf" / "deepseek-coder-1.3b-instruct.Q4_K_M.gguf"
 # Streamlit UI setup
 st.set_page_config(page_title="🧠 GenAI ChatBot", layout="wide")
 st.title("💬 DeepSeek 1.3B - Local LLM ChatBot (Async GGUF)")
 
-st.info("""
-💡 **How to Ask Good Questions:**
-Try prompts that are clear and specific. Examples:
-- ✅ Write a Python function to validate email addresses.
-- ✅ Convert this SQL to PySpark: SELECT COUNT(*) FROM users.
-- ✅ What is IAM in AWS, and how does it help secure data lakes?
-- ✅ Suggest 3 tasks for testing data quality in a new ETL project.
+with st.expander("📘 How the Model Works"):
+    resolved_path = model_path.resolve()
+    st.markdown("""
+| Parameter        | Description |
+|------------------|-------------|
+| `model_path`     | `C:\\Users\\%USERPROFILE%\\code\\modelslist\\deepseek-1_3b-gguf\\deepseek-coder-1.3b-instruct.Q4_K_M.gguf`  |
+| `n_ctx=2048`     | Max tokens the model can process per input |
+| `n_threads=6`    | Number of CPU threads to use |
+| `n_gpu_layers=0` | 0 = use CPU only. Increase if using GPU |
+| `temperature=0.7`| Controls randomness. Lower = safer |
+| `top_p=0.95`     | Nucleus sampling: picks top 95% likely words |
+| `repeat_penalty=1.1` | Penalizes repetitive output |
+| `verbose=False`  | Disables detailed logs for cleaner output |
+    """)
 
-Don’t worry about being perfect — just be curious!
+    st.markdown("""
+> The `Llama()` model is locally loaded using the `llama-cpp-python` backend.  
+It generates smart replies based on recent messages. You can control how creative or deterministic the model is using parameters like `temperature`, `top_p`, and `repeat_penalty`.
 """)
+
+with st.expander("💡 Sample Prompts to Try"):
+    st.markdown("""
+#### 💻 Programming
+- `Write a Python function to validate email addresses.`
+- `Convert this SQL to PySpark: SELECT * FROM orders WHERE status = 'shipped'`
+- `How do I merge two DataFrames in pandas?`
+
+#### 🧪 Data Quality
+- `What is a data quality rule?`
+- `Suggest 3 checks for null values in an ETL pipeline.`
+
+#### ☁️ Cloud & GenAI
+- `What is IAM in AWS and why is it important?`
+- `Explain what RAG (Retrieval-Augmented Generation) means.`
+
+#### 🧠 Knowledge
+- `What’s the difference between AI, ML, and DL?`
+- `Who was the first President of India?`
+    """)
+
 
 
 # Thread-safe globals
@@ -33,18 +64,20 @@ llm = None
 
 # Load model
 def load_model():
-    model_path = Path(os.path.expanduser("~")) / "code" / "modelslist" / "deepseek-1_3b-gguf" / "deepseek-coder-1.3b-instruct.Q4_K_M.gguf"
+    
     if not model_path.exists():
         raise FileNotFoundError(f"Model not found at {model_path}")
     
     logger.info(f"Loading model from {model_path}")
     model = Llama(
         model_path=str(model_path),
-        n_ctx=2048,
-        n_threads=6,
-        n_gpu_layers=0,
-        temperature=0.7,
-        top_p=0.95
+        n_ctx=3072,             # ⬆️ Increases context window (default: 2048)
+        n_threads=6,            # 🧠 Maximize thread usage for your CPU (Ryzen 6-core)
+        n_gpu_layers=0,         # ⚙️ Keep 0 for CPU-only
+        temperature=0.65,       # 🎯 Lower = more focused/accurate answers
+        top_p=0.9,              # 📉 Slightly restricts randomness for coherence
+        repeat_penalty=1.2,     # 🔁 Penalizes repetition more aggressively
+        verbose=False           # 🔇 Quiet logs unless debugging
     )
 
     try:
@@ -123,7 +156,8 @@ if prompt := st.chat_input("Ask me anything..."):
 with st.sidebar:
     st.subheader("🧪 Controls")
     if st.button("🔁 Reset Chat"):
-        st.session_state.messages = [{"role": "system", "content": "You are a helpful AI assistant."}]
+        
+        st.session_state.messages = [{"role": "system", "content": "You are a highly knowledgeable, friendly AI assistant. Respond clearly, use examples where helpful, format code properly, and always explain your reasoning in simple terms."}]
         st.rerun()
     st.write(f"💬 Messages: {len([m for m in st.session_state.messages if m['role'] != 'system'])}")
     st.write(f"📦 Model Status: {'✅ Loaded' if st.session_state.get('model_loaded') else '❌ Not Loaded'}")
