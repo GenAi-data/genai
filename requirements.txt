@@ -7,3 +7,16 @@ sentence-transformers
 chromadb
 plotly
 scikit-learn
+langchain
+langchain-community
+faiss-cpu
+python-docx
+pdfplumber
+speechrecognition
+striprtf
+tenacity
+aiofiles
+python-multipart
+unstructured
+python-pptx
+pypdf
